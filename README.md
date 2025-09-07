@@ -82,7 +82,7 @@ flask_video_portal_with_thumbnails_final/
 
 ---
 
-## 🖼 Скриншоты (пример)
+## 🖼 Скриншоты
 <img width="1165" height="932" alt="image" src="https://github.com/user-attachments/assets/5c423281-7136-4114-9655-15593152586d" />
 <img width="910" height="789" alt="image" src="https://github.com/user-attachments/assets/bb0f30ef-d72d-4586-a13e-2115ea21ccbe" />
 <img width="880" height="592" alt="image" src="https://github.com/user-attachments/assets/f06aeac6-13aa-4ca1-bb59-8e80b6d6b60e" />
