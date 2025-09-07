@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+{% block content %}
+<h2>Редактировать категорию</h2>
+
+<form method="POST" action="{{ url_for('main.admin_edit_category', category_id=category.id) }}">
+    <input type="text" name="name" value="{{ category.name }}" required>
+    <button type="submit">Сохранить</button>
+</form>
+
+<br>
+<a href="{{ url_for('main.admin_categories') }}">⬅ Назад к списку категорий</a>
+{% endblock %}

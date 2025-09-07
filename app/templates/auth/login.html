@@ -1,0 +1,26 @@
+{% extends "base.html" %}
+{% block title %}Вход{% endblock %}
+{% block content %}
+  <div class="row justify-content-center">
+    <div class="col-md-6 col-lg-5">
+      <div class="card border-0 shadow-lg rounded-4 p-4">
+        <h1 class="h4 fw-bold mb-3">Вход в админ‑панель</h1>
+        <form method="post">
+          {{ form.hidden_tag() }}
+          <div class="mb-3">
+            <label class="form-label">Логин</label>
+            {{ form.username(class="form-control form-control-lg") }}
+          </div>
+          <div class="mb-3">
+            <label class="form-label">Пароль</label>
+            {{ form.password(class="form-control form-control-lg") }}
+          </div>
+          <button class="btn btn-primary btn-lg w-100 rounded-pill">Войти</button>
+          <hr/>
+          <div style="text-align: center;">         
+              <b>Версия программы:</b> 0.1 / <b>UID:</b> 0.1.26
+        </form>
+      </div>
+    </div>
+  </div>
+{% endblock %}

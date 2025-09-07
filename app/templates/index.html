@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+  <h2 class="m-0">
+    {% if selected_category %}
+      Категория: {{ selected_category.name }}
+    {% else %}
+      Ваш корпоративный видеоцентр
+    {% endif %}
+  </h2>
+
+  <!-- Поиск -->
+  <form method="get" action="{{ url_for('main.index') }}" class="d-flex gap-2" role="search">
+    <input class="form-control" type="search" name="q" value="{{ request.args.get('q','') }}" placeholder="Поиск по названию…" />
+    <button class="btn btn-primary" type="submit">Найти</button>
+  </form>
+</div>
+
+{% if search_query %}
+  <div class="alert alert-info text-center mb-4" role="alert">
+    🔍 Результаты поиска по запросу: <strong>{{ search_query }}</strong>
+  </div>
+  {% if videos.items|length == 0 %}
+    <div class="alert alert-warning text-center mb-4" role="alert">
+      Ничего не найдено по запросу: <strong>{{ search_query }}</strong> 😔
+    </div>
+  {% endif %}
+{% endif %}
+
+{% if all_categories %}
+<div class="mb-3 d-flex flex-wrap gap-2">
+  <a href="{{ url_for('main.index') }}" class="btn btn-sm {{ 'btn-primary' if not selected_category else 'btn-outline-secondary' }}">Все</a>
+  {% for c in all_categories %}
+    <a href="{{ url_for('main.videos_by_category', category_id=c.id) }}" class="btn btn-sm {{ 'btn-primary' if selected_category and selected_category.id==c.id else 'btn-outline-secondary' }}">{{ c.name }}</a>
+  {% endfor %}
+</div>
+{% endif %}
+
+{% if videos.items|length == 0 and not search_query %}
+  <div class="empty-state text-center p-5 rounded-4 border">
+    <div class="display-6 mb-2">Пока пусто</div>
+    <p class="text-secondary mb-4">Загрузите своё первое видео и оно появится здесь.</p>
+    <a href="{{ url_for('main.upload_video') }}" class="btn btn-primary btn-lg">Загрузить видео</a>
+  </div>
+{% elif videos.items|length > 0 %}
+  <div class="row g-4">
+    {% for video in videos.items %}
+      <div class="col-12 col-sm-6 col-lg-4">
+        <div class="card card-hover h-100 shadow-sm video-card">
+
+          <!-- Блок с превью -->
+          <a href="{{ url_for('main.video_detail', video_id=video.id) }}" class="text-decoration-none">
+            <div class="preview-wrap position-relative">
+              
+              <!-- Обложка -->
+              <img 
+                src="{{ url_for('static', filename='thumbnails/' + video.thumbnail) if video.thumbnail else url_for('static', filename='default_thumb.jpg') }}" 
+                alt="thumbnail" 
+                class="video-overlay w-100 h-100 object-fit-cover rounded-top position-absolute top-0 start-0">
+
+              <!-- Само видео -->
+              <video
+                class="preview-video w-100 h-auto d-block rounded-top"
+                muted
+                preload="metadata"
+                playsinline>
+                <source src="{{ url_for('main.uploaded_file', filename=video.filename) }}" type="video/mp4">
+                Ваш браузер не поддерживает воспроизведение видео.
+              </video>
+            </div>
+          </a>
+
+          <div class="card-body d-flex flex-column">
+            <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+              <h5 class="card-title text-body-emphasis mb-0">{{ video.title }}</h5>
+              {% if video.category %}
+                <span class="badge text-bg-secondary">{{ video.category.name }}</span>
+              {% endif %}
+            </div>
+            {% if video.description %}
+              <p class="card-text text-secondary small flex-grow-1">
+                {{ video.description[:100] ~ ('…' if video.description|length > 100 else '') }}
+              </p>
+            {% endif %}
+
+            {% if current_user.is_authenticated and current_user.is_admin %}
+              <div class="d-flex gap-2 mb-2">
+                <a href="{{ url_for('main.admin_edit_video', video_id=video.id) }}" class="btn btn-warning btn-sm">✏ Редактировать</a>
+                <form method="post" action="{{ url_for('main.admin_delete_video', video_id=video.id) }}" onsubmit="return confirm('Удалить это видео?');">
+                  <button type="submit" class="btn btn-danger btn-sm">🗑 Удалить</button>
+                </form>
+              </div>
+            {% endif %}
+
+            <div class="d-flex justify-content-between align-items-center mt-auto text-muted small">
+              <span>👁 {{ video.views or 0 }}</span>
+              <span>❤️ {{ video.like_count() }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+
+ 
+    <!-- Пагинация -->
+  <nav aria-label="Навигация по страницам" class="mt-4">
+    <ul class="pagination justify-content-center">
+      {% if videos.has_prev %}
+        <li class="page-item">
+          {% if selected_category %}
+            <a class="page-link" href="{{ url_for('main.videos_by_category', category_id=selected_category.id, page=videos.prev_num, q=search_query) }}">«</a>
+          {% else %}
+            <a class="page-link" href="{{ url_for('main.index', page=videos.prev_num, q=search_query) }}">«</a>
+          {% endif %}
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">«</span></li>
+      {% endif %}
+
+      {% for p in videos.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+        {% if p %}
+          {% if p == videos.page %}
+            <li class="page-item active"><span class="page-link">{{ p }}</span></li>
+          {% else %}
+            <li class="page-item">
+              {% if selected_category %}
+                <a class="page-link" href="{{ url_for('main.videos_by_category', category_id=selected_category.id, page=p, q=search_query) }}">{{ p }}</a>
+              {% else %}
+                <a class="page-link" href="{{ url_for('main.index', page=p, q=search_query) }}">{{ p }}</a>
+              {% endif %}
+            </li>
+          {% endif %}
+        {% else %}
+          <li class="page-item disabled"><span class="page-link">…</span></li>
+        {% endif %}
+      {% endfor %}
+
+      {% if videos.has_next %}
+        <li class="page-item">
+          {% if selected_category %}
+            <a class="page-link" href="{{ url_for('main.videos_by_category', category_id=selected_category.id, page=videos.next_num, q=search_query) }}">»</a>
+          {% else %}
+            <a class="page-link" href="{{ url_for('main.index', page=videos.next_num, q=search_query) }}">»</a>
+          {% endif %}
+        </li>
+      {% else %}
+        <li class="page-item disabled"><span class="page-link">»</span></li>
+      {% endif %}
+    </ul>
+  </nav>
+
+{% endif %}
+
+<!-- JS -->
+<script>
+  document.addEventListener("DOMContentLoaded", function() {
+    const cards = document.querySelectorAll(".preview-wrap");
+
+    cards.forEach(card => {
+      const video = card.querySelector(".preview-video");
+      const overlay = card.querySelector(".video-overlay");
+
+      card.addEventListener("mouseenter", async () => {
+        try {
+          overlay.style.opacity = "0";
+          video.currentTime = 0;
+          await video.play();
+        } catch (err) {
+          console.log("Autoplay error:", err);
+        }
+      });
+
+      card.addEventListener("mouseleave", () => {
+        video.pause();
+        overlay.style.opacity = "1";
+      });
+    });
+  });
+</script>
+
+<style>
+  .preview-wrap {
+    overflow: hidden;
+    border-radius: 0.5rem 0.5rem 0 0;
+  }
+  .video-overlay {
+    transition: opacity 0.3s ease;
+    z-index: 2;
+  }
+  .preview-video {
+    display: block;
+  }
+</style>
+
+{% endblock %}

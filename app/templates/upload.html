@@ -1,0 +1,162 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h2 class="mb-4">⬆ Загрузка видео</h2>
+
+<div class="card shadow-sm">
+  <div class="card-body">
+    <form method="POST" action="{{ url_for('main.upload_video') }}" enctype="multipart/form-data" class="row g-3" id="uploadForm">
+      {{ form.hidden_tag() }}
+
+      <!-- Название -->
+      <div class="col-12">
+        {{ form.title.label(class="form-label") }}
+        {{ form.title(class="form-control", placeholder="Название ролика") }}
+        {% for error in form.title.errors %}
+          <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Описание -->
+      <div class="col-12">
+        {{ form.description.label(class="form-label") }}
+        {{ form.description(class="form-control", rows="4", placeholder="Краткое описание") }}
+        {% for error in form.description.errors %}
+          <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Категория -->
+      <div class="col-md-6">
+        {{ form.category.label(class="form-label") }}
+        {{ form.category(class="form-select") }}
+        {% for error in form.category.errors %}
+          <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Thumbnail Upload -->
+      <div class="col-md-6">
+        {{ form.thumbnail.label(class="form-label") }}
+        <div class="upload-dropzone border rounded p-3 text-center" id="thumbDrop">
+          <p class="m-0 text-secondary">Перетащите изображение или выберите файл</p>
+          {{ form.thumbnail(class="d-none", accept=".jpg,.jpeg,.png", id="thumbInput") }}
+          <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="document.getElementById('thumbInput').click()">Выбрать</button>
+        </div>
+        <div class="form-text">PNG/JPG, до 5 МБ</div>
+        {% for error in form.thumbnail.errors %}
+          <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Video Upload -->
+      <div class="col-12">
+        {{ form.video.label(class="form-label") }}
+        <div class="upload-dropzone border rounded p-3 text-center" id="videoDrop">
+          <p class="m-0 text-secondary">Перетащите видео или выберите файл</p>
+          {{ form.video(class="d-none", accept=".mp4,.mov,.webm,.mkv", id="videoInput") }}
+          <button type="button" class="btn btn-sm btn-outline-primary mt-2" onclick="document.getElementById('videoInput').click()">Выбрать</button>
+        </div>
+        <div class="form-text">MP4/MOV/WEBM/MKV, до 500 МБ</div>
+        {% for error in form.video.errors %}
+          <div class="text-danger small">{{ error }}</div>
+        {% endfor %}
+      </div>
+
+      <!-- Preview -->
+      <div class="col-12 d-flex gap-3 flex-wrap">
+        <img id="thumbPreview" class="rounded d-none border" style="width:140px;height:80px;object-fit:cover;" alt="Превью обложки">
+        <video id="videoPreview" class="rounded d-none border" width="auto" height="135" controls></video>
+      </div>
+
+      <!-- Ошибки JavaScript -->
+      <div id="errorBox" class="alert alert-danger d-none"></div>
+
+      <!-- Кнопки -->
+      <div class="col-12 d-flex justify-content-between">
+        <a href="{{ url_for('main.index') }}" class="btn btn-secondary">⬅ Назад</a>
+        {{ form.submit(class="btn btn-success btn-lg") }}
+      </div>
+    </form>
+  </div>
+</div>
+
+<style>
+  .upload-dropzone {
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+  .upload-dropzone.dragover {
+    background: #f8f9fa;
+    border: 2px dashed #0d6efd;
+  }
+</style>
+
+<script>
+function setupImageDropzone(dropzone, input, previewEl) {
+  dropzone.addEventListener('click', () => input.click());
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    input.files = e.dataTransfer.files;
+    input.dispatchEvent(new Event('change'));
+  });
+  input.addEventListener('change', (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith('image/')) return;
+    if (f.size > 5 * 1024 * 1024) {
+      showError('Размер обложки не должен превышать 5 МБ');
+      input.value = '';
+      return;
+    }
+    const url = URL.createObjectURL(f);
+    previewEl.src = url;
+    previewEl.classList.remove('d-none');
+  });
+}
+
+function setupVideoDropzone(dropzone, input, previewEl) {
+  dropzone.addEventListener('click', () => input.click());
+  dropzone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    dropzone.classList.add('dragover');
+  });
+  dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+  dropzone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    dropzone.classList.remove('dragover');
+    input.files = e.dataTransfer.files;
+    input.dispatchEvent(new Event('change'));
+  });
+  input.addEventListener('change', (e) => {
+    const f = e.target.files?.[0];
+    if (!f) return;
+    if (!f.type.startsWith('video/')) return;
+    if (f.size > 500 * 1024 * 1024) {
+      showError('Размер видео не должен превышать 500 МБ');
+      input.value = '';
+      return;
+    }
+    const url = URL.createObjectURL(f);
+    previewEl.src = url;
+    previewEl.classList.remove('d-none');
+  });
+}
+
+function showError(msg) {
+  const box = document.getElementById('errorBox');
+  box.textContent = msg;
+  box.classList.remove('d-none');
+}
+
+setupImageDropzone(document.getElementById('thumbDrop'), document.getElementById('thumbInput'), document.getElementById('thumbPreview'));
+setupVideoDropzone(document.getElementById('videoDrop'), document.getElementById('videoInput'), document.getElementById('videoPreview'));
+</script>
+
+{% endblock %}

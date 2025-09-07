@@ -1,0 +1,144 @@
+{% extends "base.html" %}
+{% block content %}
+
+<div class="row g-4">
+  <!-- Видео -->
+  <div class="col-lg-8">
+    <div class="ratio ratio-16x9 rounded overflow-hidden shadow-sm">
+      {% if video.filename %}
+      <video controls autoplay
+        {% if video.thumbnail %}
+        poster="{{ url_for('static', filename='thumbnails/' ~ video.thumbnail) }}"
+        {% endif %}
+        style="width:100%; height:100%; object-fit:cover;">
+        <source src="{{ url_for('static', filename='uploads/' ~ video.filename) }}" type="video/mp4">
+        Ваш браузер не поддерживает воспроизведение видео.
+      </video>
+      {% else %}
+      <div class="d-flex justify-content-center align-items-center bg-light text-muted h-100">
+        Видео отсутствует
+      </div>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Инфо -->
+  <div class="col-lg-4">
+    <h3 class="mb-2">{{ video.title }}</h3>
+
+    {% if video.category %}
+      <span class="badge bg-secondary mb-3">{{ video.category.name }}</span>
+    {% endif %}
+
+    {% if video.description %}
+      <p class="text-muted">{{ video.description }}</p>
+    {% endif %}
+
+    <div class="d-flex align-items-center gap-2 text-muted small mt-3">
+      <span>👁 {{ video.views or 0 }}</span>
+      <span>|</span>
+      <span id="like-count">❤️ {{ video.like_count() }}</span>
+      <span>|</span>
+      <span>📅 {{ video.created_at.strftime("%d.%m.%Y") }}</span>
+    </div>
+
+    <div class="mt-4 d-flex gap-2">
+      <button id="like-btn"
+              class="btn btn-sm {% if liked %}btn-danger{% else %}btn-outline-danger{% endif %}">
+        ❤️ Нравится
+      </button>
+      <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary btn-sm">
+        ← Ко всем видео
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- Похожие видео -->
+{% if related_videos %}
+<div class="mt-5">
+  <h4 class="mb-3">Похожие видео</h4>
+  <div class="row row-cols-1 row-cols-sm-2 row-cols-md-4 g-3">
+    {% for rv in related_videos %}
+    <div class="col">
+      <div class="card h-100 shadow-sm video-card">
+        <div class="video-preview-wrapper position-relative overflow-hidden" style="height:200px;">
+          <!-- Обложка -->
+          <img src="{{ url_for('static', filename='thumbnails/' ~ rv.thumbnail) if rv.thumbnail else url_for('static', filename='no_thumb.png') }}"
+               class="card-img-top preview-img w-100 h-100"
+               style="object-fit:cover; position:absolute; top:0; left:0; transition: opacity 0.3s;" alt="{{ rv.title }}">
+          <!-- Видео -->
+          <video class="preview-video w-100 h-100"
+                 muted playsinline preload="auto"
+                 style="object-fit:cover; position:absolute; top:0; left:0; opacity:0; transition: opacity 0.3s;">
+            <source src="{{ url_for('static', filename='uploads/' ~ rv.filename) }}" type="video/mp4">
+          </video>
+        </div>
+        <div class="card-body p-2">
+          <a href="{{ url_for('main.video_detail', video_id=rv.id) }}" class="stretched-link text-decoration-none">
+            <h6 class="card-title text-truncate">{{ rv.title }}</h6>
+          </a>
+          <p class="card-text small text-muted mb-0 d-flex align-items-center gap-2">
+            <span>👁 {{ rv.views or 0 }}</span>
+            <span>|</span>
+            <span>❤️ {{ rv.like_count() }}</span>
+            <span>|</span>
+            <span>📅 {{ rv.created_at.strftime("%d.%m.%Y") }}</span>
+          </p>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endif %}
+
+<!-- JS -->
+<script>
+document.addEventListener("DOMContentLoaded", function() {
+  // Лайки
+  const likeBtn = document.getElementById("like-btn");
+  const likeCount = document.getElementById("like-count");
+
+  likeBtn?.addEventListener("click", function() {
+    fetch("{{ url_for('main.like_video', video_id=video.id) }}", {
+      method: "POST",
+      headers: { "X-Requested-With": "XMLHttpRequest" }
+    })
+    .then(response => response.json())
+    .then(data => {
+      likeCount.textContent = `❤️ ${data.count}`;
+      likeBtn.classList.toggle("btn-danger", data.liked);
+      likeBtn.classList.toggle("btn-outline-danger", !data.liked);
+    });
+  });
+
+  // Превью (автовоспроизведение при наведении)
+  const cards = document.querySelectorAll(".video-card");
+
+  cards.forEach(card => {
+    const previewImg = card.querySelector(".preview-img");
+    const previewVideo = card.querySelector(".preview-video");
+
+    card.addEventListener("mouseenter", () => {
+      if (previewImg && previewVideo) {
+        previewImg.style.opacity = "0";
+        previewVideo.style.opacity = "1";
+        previewVideo.currentTime = 0;
+        previewVideo.play().catch(err => console.warn("Автовоспроизведение не сработало:", err));
+      }
+    });
+
+    card.addEventListener("mouseleave", () => {
+      if (previewVideo && previewImg) {
+        previewVideo.pause();
+        previewVideo.currentTime = 0;
+        previewVideo.style.opacity = "0";
+        previewImg.style.opacity = "1";
+      }
+    });
+  });
+});
+</script>
+
+{% endblock %}

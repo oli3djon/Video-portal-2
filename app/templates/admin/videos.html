@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container mt-4">
+    <h2>🎬 Видео</h2>
+
+    {% if pagination.items %}
+    <div class="row row-cols-1 row-cols-md-3 g-4">
+        {% for video in pagination.items %}
+        <div class="col">
+            <div class="card h-100 shadow-sm">
+                <!-- Обложка -->
+                {% if video.thumbnail %}
+                    <img src="{{ url_for('static', filename='thumbnails/' ~ video.thumbnail) }}"
+                         class="card-img-top" alt="{{ video.title }}">
+                {% else %}
+                    <img src="{{ url_for('static', filename='default-thumbnail.jpg') }}"
+                         class="card-img-top" alt="Нет обложки">
+                {% endif %}
+
+                <div class="card-body">
+                    <h5 class="card-title">{{ video.title }}</h5>
+                    <p class="card-text text-muted">
+                        {{ video.category.name if video.category else "Без категории" }}
+                    </p>
+                    <p class="card-text small">
+                        Автор: {{ video.user.username if video.user else "—" }}<br>
+                        Загружено: {{ video.created_at.strftime('%Y-%m-%d') }}
+                    </p>
+                </div>
+                <div class="card-footer text-center">
+                    <a href="{{ url_for('main.view_video', video_id=video.id) }}" class="btn btn-primary">
+                        ▶ Смотреть
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <!-- Пагинация -->
+    <nav class="mt-4" aria-label="Page navigation">
+        <ul class="pagination justify-content-center">
+            {% if pagination.has_prev %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('main.videos', page=pagination.prev_num) }}">Назад</a>
+                </li>
+            {% endif %}
+
+            {% for page_num in pagination.iter_pages() %}
+                {% if page_num %}
+                    <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                        <a class="page-link" href="{{ url_for('main.videos', page=page_num) }}">{{ page_num }}</a>
+                    </li>
+                {% else %}
+                    <li class="page-item disabled"><span class="page-link">…</span></li>
+                {% endif %}
+            {% endfor %}
+
+            {% if pagination.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="{{ url_for('main.videos', page=pagination.next_num) }}">Вперёд</a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% else %}
+        <p>Видео пока нет.</p>
+    {% endif %}
+</div>
+{% endblock %}

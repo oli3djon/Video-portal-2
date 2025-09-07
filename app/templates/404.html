@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}404 — Страница не найдена{% endblock %}
+
+{% block content %}
+<div style="text-align: center; padding: 80px;">
+    <h1 style="font-size: 6em; color: #ff5555;">404</h1>
+    <h2>Упс! Такой страницы нет 😢</h2>
+    <p>Возможно, вы ошиблись в адресе или страница была удалена.</p>
+    <a href="{{ url_for('main.index') }}" class="btn">⬅ На главную</a>
+</div>
+{% endblock %}

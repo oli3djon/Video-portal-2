@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="container">
+  <h2 class="mb-4">✏ Редактировать видео</h2>
+
+  <form method="POST" enctype="multipart/form-data" class="card p-4 shadow-sm">
+    {{ form.hidden_tag() }}
+
+    <!-- Глобальные ошибки -->
+    {% if form.errors %}
+      <div class="alert alert-danger">
+        <ul class="mb-0">
+          {% for field, errors in form.errors.items() %}
+            {% for error in errors %}
+              <li>{{ error }}</li>
+            {% endfor %}
+          {% endfor %}
+        </ul>
+      </div>
+    {% endif %}
+
+    <!-- Название -->
+    <div class="mb-3">
+      {{ form.title.label(class="form-label") }}
+      {{ form.title(class="form-control", placeholder="Введите название") }}
+    </div>
+
+    <!-- Описание -->
+    <div class="mb-3">
+      {{ form.description.label(class="form-label") }}
+      {{ form.description(class="form-control", rows="4", placeholder="Введите описание") }}
+    </div>
+
+    <!-- Категория -->
+    <div class="mb-3">
+      {{ form.category.label(class="form-label") }}
+      {{ form.category(class="form-select") }}
+    </div>
+
+    <!-- Текущее превью -->
+    {% if video.thumbnail %}
+    <div class="mb-3">
+      <label class="form-label">Текущая обложка:</label><br>
+      <img src="{{ url_for('static', filename='thumbnails/' ~ video.thumbnail) }}"
+           alt="Превью" class="img-thumbnail mt-2" style="max-height: 150px;">
+    </div>
+    {% endif %}
+
+    <!-- Загрузить новый thumbnail -->
+    <div class="mb-3">
+      {{ form.thumbnail.label(class="form-label") }}
+      {{ form.thumbnail(class="form-control") }}
+      <div class="form-text">Можно загрузить новую обложку (старое изображение заменится)</div>
+    </div>
+
+    <!-- Текущее видео -->
+    <div class="mb-3">
+      <label class="form-label">Текущее видео:</label><br>
+      <video controls style="max-width: 100%; max-height: 300px;" class="mt-2">
+        <source src="{{ url_for('main.uploaded_file', filename=video.filename) }}" type="video/mp4">
+        Ваш браузер не поддерживает видео.
+      </video>
+    </div>
+
+    <!-- Загрузить новое видео -->
+    <div class="mb-3">
+      {{ form.video.label(class="form-label") }}
+      {{ form.video(class="form-control") }}
+      <div class="form-text">Можно загрузить новый видеофайл (старый будет удалён после сохранения)</div>
+    </div>
+
+    <!-- Кнопки -->
+    <div class="d-flex justify-content-between mt-4">
+      <a href="{{ url_for('main.admin_videos') }}" class="btn btn-secondary">⬅ Назад</a>
+      <button type="submit" class="btn btn-primary">💾 Сохранить изменения</button>
+    </div>
+  </form>
+</div>
+{% endblock %}

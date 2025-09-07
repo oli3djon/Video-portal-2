@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+{% block title %}404 — Страница не найдена{% endblock %}
+
+{% block content %}
+<body class="dark-theme">
+    
+ <h2>Свяжитесь с нами</h2>
+  <p>Заполните форму ниже, и наша команда свяжется с вами в ближайшее время.</p>
+
+  <form class="contacts-form" onsubmit="handleSubmit(event)" style="max-width:500px; padding:20px; border:1px solid #ccc; border-radius:10px;">
+    
+    <label for="name" style="display:block; margin-bottom:6px; font-weight:bold;">Ваше имя и фамилия</label>
+    <input type="text" id="name" name="name" required 
+           style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:5px;">
+
+    <label for="email" style="display:block; margin-bottom:6px; font-weight:bold;">Электронная почта</label>
+    <input type="email" id="email" name="email" required 
+           style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:5px;">
+
+    <label for="phone" style="display:block; margin-bottom:6px; font-weight:bold;">Телефон</label>
+    <input type="tel" id="phone" name="phone" placeholder="+998 (__) ___-__-__" required
+           style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:5px;">
+
+    <label for="subject" style="display:block; margin-bottom:6px; font-weight:bold;">Тема обращения</label>
+    <select id="subject" name="subject" required 
+            style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:5px;">
+      <option value="">-- Выберите тему --</option>
+      <option value="general">Общий вопрос</option>
+      <option value="support">Техническая поддержка</option>
+      <option value="proposal">Предложение / Идея</option>
+    </select>
+
+    <label for="message" style="display:block; margin-bottom:6px; font-weight:bold;">Сообщение</label>
+    <textarea id="message" name="message" rows="5" required 
+              style="width:100%; padding:10px; margin-bottom:15px; border:1px solid #ccc; border-radius:5px;"></textarea>
+
+    <label style="display:block; margin-bottom:15px;">
+      <input type="checkbox" name="consent" required>
+      Я согласен на обработку персональных данных
+    </label>
+
+    <button type="submit" 
+            style="background:#007bff; color:#fff; padding:12px 20px; border:none; border-radius:5px; cursor:pointer; font-size:16px;">
+      Отправить
+    </button>
+  </form>
+
+
+
+  <script>
+    function handleSubmit(event) {
+      event.preventDefault(); // отменяем стандартную отправку
+      alert("✅ Ваше сообщение отправлено успешно!");
+      event.target.reset(); // очищаем форму
+    }
+  </script>
+</body>
+{% endblock %}
